@@ -1,0 +1,31 @@
+# Dockerfile-frontend
+
+# Usar una imagen base de Node.js
+FROM node:18 AS build
+
+# Crear y establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar los archivos de configuración de npm
+COPY frontend/package.json frontend/package-lock.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto del código fuente
+COPY frontend/ ./
+
+# Construir la aplicación React
+RUN npm run build
+
+# Usar una imagen base de Nginx para servir la aplicación
+FROM nginx:alpine
+
+# Copiar los archivos construidos en el contenedor de Nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Exponer el puerto en el que Nginx estará escuchando
+EXPOSE 80
+
+# Comando por defecto para iniciar Nginx
+CMD ["nginx", "-g", "daemon off;"]

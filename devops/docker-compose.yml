@@ -1,0 +1,80 @@
+
+services:
+
+  # PostgreSQL Service
+  postgres:
+    container_name: postgresdb
+    hostname: postgresdb
+    image: postgres:16.3
+    environment:
+      POSTGRES_DB: hackatondb
+      POSTGRES_USER: hackatonuser
+      POSTGRES_PASSWORD: hackatonpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - ./database/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my_network
+
+  # DuckDB Service
+  duckdb:
+    image: qldrsc/duckdb:latest  # Usar imagen desde GitHub Container Registry
+    container_name: duckdb
+    hostname: duckdb
+    ports:
+      - "9000:9000"
+    volumes:
+      - duckdb_data:/duckdb
+    restart: unless-stopped
+    networks:
+      - my_network
+
+
+  fastapi:
+    container_name: fastapi
+    hostname: fastapi
+    build: ../backend
+    ports:
+      - "8000:8000"
+    networks:
+      - my_network
+
+  # backend:
+  #   build:
+  #     context: ../backend
+  #     dockerfile: ../devops/Dockerfile-backend
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - my_network
+
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #     dockerfile: ../devops/Dockerfile-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - my_network
+
+  # visualization:
+  #   build:
+  #     context: ../analytics
+  #     dockerfile: ../devops/Dockerfile-visualization
+  #   ports:
+  #     - "8501:8501"
+  #   networks:
+  #     - my_network
+
+volumes:
+  postgres_data:
+    driver: local
+  duckdb_data:
+    driver: local
+
+networks:
+  my_network:
+    driver: bridge
